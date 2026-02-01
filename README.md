@@ -8,4 +8,5 @@ On Raspberry Pi 5s, the rpi foundation provides a collection of scripts and low-
 
 ## Objective
 
-The goal of this project is to define the process used by the raspberry pi 5's secure boot, define a process to provision a new device for secure boot using NixOS, and showing that this process doesn't interrupt NixOS upgrades.  We should be able to demonstrate that running a "signed" SD card image will boot, while an unsigned SD card image will not.
+The goal of this project is to document the process used by the raspberry pi 5's secure boot, define a process to provision a new device for secure boot using NixOS, and deploying a provisioned device.  We should be able to demonstrate that running a "signed" SD card image will boot, while an unsigned SD card image will not.
+

@@ -10,3 +10,14 @@ On Raspberry Pi 5s, the rpi foundation provides a collection of scripts and low-
 
 The goal of this project is to document the process used by the raspberry pi 5's secure boot, define a process to provision a new device for secure boot using NixOS, and deploying a provisioned device.  We should be able to demonstrate that running a "signed" SD card image will boot, while an unsigned SD card image will not.
 
+### Secure Boot on the Raspberry Pi 5
+
+Looking at the [RPi 5 boot flow documentation](https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#first-stage-bootloader), we see the following flow:
+
+```mermaid
+graph TD;
+    A-->B;
+    A-->C;
+    B-->D;
+    C-->D;
+```

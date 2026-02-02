@@ -10,13 +10,13 @@ On Raspberry Pi 5s, the rpi foundation provides a collection of scripts and low-
 
 The goal of this project is to document the process used by the raspberry pi 5's secure boot, define a process to provision a new device for secure boot using NixOS, and deploying a provisioned device.  We should be able to demonstrate that running a "signed" SD card image will boot, while an unsigned SD card image will not.
 
-### Secure Boot on the Raspberry Pi 5
+### Chain of Trust on the Raspberry Pi 5
 
 We'll start by working toward this chain of trust: https://github.com/raspberrypi/usbboot/blob/master/docs/secure-boot-chain-of-trust-2712.pdf
 
 And this document: https://github.com/raspberrypi/usbboot/blob/master/docs/secure-boot.md
 
-From those, lets derrive the secure boot workflow, with an emphasis on identifying the secrets & how they are used
+From those, lets derive the secure boot workflow, with an emphasis on identifying the secrets & how they are used.
 
 #### Boot ROM
 
@@ -37,5 +37,24 @@ sequenceDiagram
     BOOTROM->>bootsys: Jump to Bootsys
     deactivate BOOTROM
     activate bootsys
-
 ```
+
+When the system comes out of reset, it begins executing the `BOOTROM` burned in to the SoC.  `BOOTROM` is responsible for loading the second stage bootloader from the on-board EEPROM (aka `bootsys`).
+
+To facilitate this process, we need:
+
+* An RSA2048 Keypair
+    * Name: `Customer Key`
+    * Purpose: Sign the `bootsys` sector & allow `BOOTROM` to validate the signature
+    * Artifacts:
+        * `private key` - used to sign `bootsys`.  Be sure to design secure processes for handling this.  We'll discuss these details later.
+        * `public key` - bundled into `bootsys`
+        * `public key sha256` - burned into OTP.  This ensures the hardware will only execute a `bootsys` signed by our public key.
+    * The public key is bundled into `bootsys`
+* A signed `bootsys`
+    * Processes:
+        * Sign with Customer Key
+        * Write to EEPROM
+* Firmware Version (TBD how to handle this)
+
+We'll keep these details in mind for later when we get to the provisioning step.

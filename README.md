@@ -20,7 +20,7 @@ From those, lets derrive the secure boot workflow, with an emphasis on identifyi
 
 #### Boot ROM
 
-```mermaid.js
+```mermaid
 sequenceDiagram
     create participant BOOTROM
     activate BOOTROM

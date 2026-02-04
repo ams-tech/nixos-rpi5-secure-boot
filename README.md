@@ -23,10 +23,11 @@ From those, lets derive the secure boot workflow, with an emphasis on identifyin
 ```mermaid
 sequenceDiagram
     create participant BOOTROM
+    Note Over BOOTROM: SoC Reset
     activate BOOTROM
 
     EEPROM-->>BOOTROM: Load Firmware Bundle
-    Note Over BOOTROM: Verify Firmware Bundle signature against public key
+    Note Over BOOTROM: Verify Firmware Bundle against signature
 
     OTP-->>BOOTROM: Read Customer Firmware Minimum Version
     Note Over BOOTROM: Verify Firmware Version
@@ -39,11 +40,10 @@ sequenceDiagram
     activate EEPROM
     
 
-    BOOT_MEDIA-->>EEPROM: Load boot.bin and boot.sig
+    BOOT_MEDIA-->>EEPROM: Load boot.img and boot.sig
     Note over EEPROM: Verify public key in boot.sig
-    Note over EEPROM: Verify boot.bin against boot.sig
-    Note over EEPROM: Load boot.bin into RAM
-    EEPROM->>BOOT_MEDIA: Jump to initramfs
+    Note over EEPROM: Verify boot.img against boot.sig
+    EEPROM->>BOOT_MEDIA: Jump to boot.img
     deactivate EEPROM
 
 ```

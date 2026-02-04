@@ -18,25 +18,34 @@ And this document: https://github.com/raspberrypi/usbboot/blob/master/docs/secur
 
 From those, lets derive the secure boot workflow, with an emphasis on identifying the secrets & how they are used.
 
-#### Boot ROM
+#### Sequence Diagram
 
 ```mermaid
 sequenceDiagram
     create participant BOOTROM
     activate BOOTROM
 
-    bootsys-->>BOOTROM: Load bootsys
-    Note Over BOOTROM: Verify bootsys signature against public key
+    EEPROM-->>BOOTROM: Load Firmware Bundle
+    Note Over BOOTROM: Verify Firmware Bundle signature against public key
 
     OTP-->>BOOTROM: Read Customer Firmware Minimum Version
-    Note Over BOOTROM: Verify bootsys Firmware Version
+    Note Over BOOTROM: Verify Firmware Version
 
     OTP-->>BOOTROM: Read Customer Public Key SHA256
     Note Over BOOTROM: Verify Customer Public Key SHA256
-    
-    BOOTROM->>bootsys: Jump to Bootsys
+
+    BOOTROM->>EEPROM: Jump to Firmware/SSBL
     deactivate BOOTROM
-    activate bootsys
+    activate EEPROM
+    
+
+    BOOT_MEDIA-->>EEPROM: Load boot.bin and boot.sig
+    Note over EEPROM: Verify public key in boot.sig
+    Note over EEPROM: Verify boot.bin against boot.sig
+    Note over EEPROM: Load boot.bin into RAM
+    EEPROM->>BOOT_MEDIA: Jump to initramfs
+    deactivate EEPROM
+
 ```
 
 When the system comes out of reset, it begins executing the `BOOTROM` burned in to the SoC.  `BOOTROM` is responsible for loading the second stage bootloader from the on-board EEPROM (aka `bootsys`).
@@ -58,3 +67,14 @@ To facilitate this process, we need:
 * Firmware Version (TBD how to handle this)
 
 We'll keep these details in mind for later when we get to the provisioning step.
+
+### Generating Signed Boot Media
+
+Note that this section does not elaborate on the importance of securing your signing keys.  Be careful out there.
+
+Referencing the QSG:
+
+* Use [rpiboot](https://search.nixos.org/packages?channel=25.11&show=rpiboot&query=rpiboot) to sign 
+
+### Device Provisioning
+

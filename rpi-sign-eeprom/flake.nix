@@ -1,127 +1,166 @@
 {
-  description = "A tool to sign Raspberry Pi EEPROM images";
+  description = "A template that shows all standard flake outputs";
 
-  # Nixpkgs / NixOS version to use.
-  inputs.nixpkgs.url = "nixpkgs/nixos-25.11";
+  # Inputs
+  # https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake.html#flake-inputs
 
-  outputs = { self, nixpkgs }:
-    let
+  # The flake in the current directory.
+  # inputs.currentDir.url = ".";
 
-      # to work with older version of flakes
-      lastModifiedDate = self.lastModifiedDate or self.lastModified or "19700101";
+  # A flake in some other directory.
+  # inputs.otherDir.url = "/home/alice/src/patchelf";
 
-      # Generate a user-friendly version number.
-      version = builtins.substring 0 8 lastModifiedDate;
+  # A flake in some absolute path
+  # inputs.otherDir.url = "path:/home/alice/src/patchelf";
 
-      # System types to support.
-      supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
+  # The nixpkgs entry in the flake registry.
+  inputs.nixpkgsRegistry.url = "nixpkgs";
 
-      # Helper function to generate an attrset '{ x86_64-linux = f "x86_64-linux"; ... }'.
-      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+  # The nixpkgs entry in the flake registry, overriding it to use a specific Git revision.
+  inputs.nixpkgsRegistryOverride.url = "nixpkgs/a3a3dda3bacf61e8a39258a0ed9c924eeca8e293";
 
-      # Nixpkgs instantiated for supported system types.
-      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; overlays = [ self.overlay ]; });
+  # The master branch of the NixOS/nixpkgs repository on GitHub.
+  inputs.nixpkgsGitHub.url = "github:NixOS/nixpkgs";
 
-    in
+  # The nixos-20.09 branch of the NixOS/nixpkgs repository on GitHub.
+  inputs.nixpkgsGitHubBranch.url = "github:NixOS/nixpkgs/nixos-20.09";
 
-    {
+  # A specific revision of the NixOS/nixpkgs repository on GitHub.
+  inputs.nixpkgsGitHubRevision.url = "github:NixOS/nixpkgs/a3a3dda3bacf61e8a39258a0ed9c924eeca8e293";
 
-      # A Nixpkgs overlay.
-      overlay = final: prev: {
+  # A flake in a subdirectory of a GitHub repository.
+  inputs.nixpkgsGitHubDir.url = "github:edolstra/nix-warez?dir=blender";
 
-        hello = with final; stdenv.mkDerivation rec {
-          name = "hello-${version}";
+  # A git repository.
+  inputs.gitRepo.url = "git+https://github.com/NixOS/patchelf";
 
-          unpackPhase = ":";
+  # A specific branch of a Git repository.
+  inputs.gitRepoBranch.url = "git+https://github.com/NixOS/patchelf?ref=master";
 
-          buildPhase =
-            ''
-              cat > hello <<EOF
-              #! $SHELL
-              echo "Hello Nixers!"
-              EOF
-              chmod +x hello
-            '';
+  # A specific revision of a Git repository.
+  inputs.gitRepoRev.url = "git+https://github.com/NixOS/patchelf?ref=master&rev=f34751b88bd07d7f44f5cd3200fb4122bf916c7e";
 
-          installPhase =
-            ''
-              mkdir -p $out/bin
-              cp hello $out/bin/
-            '';
-        };
+  # A tarball flake
+  inputs.tarFlake.url = "https://github.com/NixOS/patchelf/archive/master.tar.gz";
 
-      };
+  # A GitHub repository.
+  inputs.import-cargo = {
+    type = "github";
+    owner = "edolstra";
+    repo = "import-cargo";
+  };
 
-      # Provide some binary packages for selected system types.
-      packages = forAllSystems (system:
-        {
-          inherit (nixpkgsFor.${system}) hello;
-        });
+  # Inputs as attrsets.
+  # An indirection through the flake registry.
+  inputs.nixpkgsIndirect = {
+    type = "indirect";
+    id = "nixpkgs";
+  };
 
-      # The default package for 'nix build'. This makes sense if the
-      # flake provides only one package or there is a clear "main"
-      # package.
-      defaultPackage = forAllSystems (system: self.packages.${system}.hello);
+  # Non-flake inputs. These provide a variable of type path.
+  inputs.grcov = {
+    type = "github";
+    owner = "mozilla";
+    repo = "grcov";
+    flake = false;
+  };
 
-      # A NixOS module, if applicable (e.g. if the package provides a system service).
-      nixosModules.hello =
-        { pkgs, ... }:
-        {
-          nixpkgs.overlays = [ self.overlay ];
+  # Transitive inputs can be overridden from a flake.nix file. For example, the following overrides the nixpkgs input of the nixops input:
+  inputs.nixops.inputs.nixpkgs = {
+    type = "github";
+    owner = "NixOS";
+    repo = "nixpkgs";
+  };
 
-          environment.systemPackages = [ pkgs.hello ];
+  # It is also possible to "inherit" an input from another input. This is useful to minimize
+  # flake dependencies. For example, the following sets the nixpkgs input of the top-level flake
+  # to be equal to the nixpkgs input of the nixops input of the top-level flake:
+  inputs.nixpkgs.url = "nixpkgs";
+  inputs.nixpkgs.follows = "nixops/nixpkgs";
 
-          #systemd.services = { ... };
-        };
+  # The value of the follows attribute is a sequence of input names denoting the path
+  # of inputs to be followed from the root flake. Overrides and follows can be combined, e.g.
+  inputs.nixops.url = "nixops";
+  inputs.dwarffs.url = "dwarffs";
+  inputs.dwarffs.inputs.nixpkgs.follows = "nixpkgs";
 
-      # Tests run by 'nix flake check' and by Hydra.
-      checks = forAllSystems
-        (system:
-          with nixpkgsFor.${system};
+  # For more information about well-known outputs checked by `nix flake check`:
+  # https://nixos.org/manual/nix/unstable/command-ref/new-cli/nix3-flake-check.html#evaluation-checks
 
-          {
-            inherit (self.packages.${system}) hello;
+  # These examples all use "x86_64-linux" as the system.
+  # Please see the c-hello template for an example of how to handle multiple systems.
 
-            # Additional tests, if applicable.
-            test = stdenv.mkDerivation {
-              name = "hello-test-${version}";
+  inputs.c-hello.url = "github:NixOS/templates?dir=c-hello";
+  inputs.rust-web-server.url = "github:NixOS/templates?dir=rust-web-server";
+  inputs.nix-bundle.url = "github:NixOS/bundlers";
 
-              buildInputs = [ hello ];
+  # Work-in-progress: refer to parent/sibling flakes in the same repository
+  # inputs.c-hello.url = "path:../c-hello";
 
-              unpackPhase = "true";
+  outputs = all@{ self, c-hello, rust-web-server, nixpkgs, nix-bundle, ... }: {
 
-              buildPhase = ''
-                echo 'running some integration tests'
-                [[ $(hello) = 'Hello Nixers!' ]]
-              '';
+    # Utilized by `nix flake check`
+    checks.x86_64-linux.test = c-hello.checks.x86_64-linux.test;
 
-              installPhase = "mkdir -p $out";
-            };
-          }
+    # Utilized by `nix build .`
+    defaultPackage.x86_64-linux = c-hello.defaultPackage.x86_64-linux;
 
-          // lib.optionalAttrs stdenv.isLinux {
-            # A VM test of the NixOS module.
-            vmTest =
-              with import (nixpkgs + "/nixos/lib/testing-python.nix") {
-                inherit system;
-              };
+    # Utilized by `nix build`
+    packages.x86_64-linux.hello = c-hello.packages.x86_64-linux.hello;
 
-              makeTest {
-                nodes = {
-                  client = { ... }: {
-                    imports = [ self.nixosModules.hello ];
-                  };
-                };
-
-                testScript =
-                  ''
-                    start_all()
-                    client.wait_for_unit("multi-user.target")
-                    client.succeed("hello")
-                  '';
-              };
-          }
-        );
-
+    # Utilized by `nix run .#<name>`
+    apps.x86_64-linux.hello = {
+      type = "app";
+      program = c-hello.packages.x86_64-linux.hello;
     };
+
+    # Utilized by `nix bundle -- .#<name>` (should be a .drv input, not program path?)
+    bundlers.x86_64-linux.example = nix-bundle.bundlers.x86_64-linux.toArx;
+
+    # Utilized by `nix bundle -- .#<name>`
+    defaultBundler.x86_64-linux = self.bundlers.x86_64-linux.example;
+
+    # Utilized by `nix run . -- <args?>`
+    defaultApp.x86_64-linux = self.apps.x86_64-linux.hello;
+
+    # Utilized for nixpkgs packages, also utilized by `nix build .#<name>`
+    legacyPackages.x86_64-linux.hello = c-hello.defaultPackage.x86_64-linux;
+
+    # Default overlay, for use in dependent flakes
+    overlay = final: prev: { };
+
+    # # Same idea as overlay but a list or attrset of them.
+    overlays = { exampleOverlay = self.overlay; };
+
+    # Default module, for use in dependent flakes. Deprecated, use nixosModules.default instead.
+    nixosModule = { config, ... }: { options = {}; config = {}; };
+
+    # Same idea as nixosModule but a list or attrset of them.
+    nixosModules = { exampleModule = self.nixosModule; };
+
+    # Used with `nixos-rebuild --flake .#<hostname>`
+    # nixosConfigurations."<hostname>".config.system.build.toplevel must be a derivation
+    nixosConfigurations.example = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [{boot.isContainer=true;}] ;
+    };
+
+    # Utilized by `nix develop`
+    devShell.x86_64-linux = rust-web-server.devShell.x86_64-linux;
+
+    # Utilized by `nix develop .#<name>`
+    devShells.x86_64-linux.example = self.devShell.x86_64-linux;
+
+    # Utilized by Hydra build jobs
+    hydraJobs.example.x86_64-linux = self.defaultPackage.x86_64-linux;
+
+    # Utilized by `nix flake init -t <flake>`
+    defaultTemplate = {
+      path = c-hello;
+      description = "template description";
+    };
+
+    # Utilized by `nix flake init -t <flake>#<name>`
+    templates.example = self.defaultTemplate;
+  };
 }

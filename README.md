@@ -22,7 +22,6 @@ From those, lets derive the secure boot workflow, with an emphasis on identifyin
 
 ```mermaid
 sequenceDiagram
-    create participant BOOTROM
     Note Over BOOTROM: SoC Reset
     activate BOOTROM
 
@@ -39,13 +38,11 @@ sequenceDiagram
     deactivate BOOTROM
     activate EEPROM
     
-
     BOOT_MEDIA-->>EEPROM: Load boot.img and boot.sig
     Note over EEPROM: Verify public key in boot.sig
     Note over EEPROM: Verify boot.img against boot.sig
     EEPROM->>BOOT_MEDIA: Jump to boot.img
     deactivate EEPROM
-
 ```
 
 When the system comes out of reset, it begins executing the `BOOTROM` burned in to the SoC.  `BOOTROM` is responsible for loading the second stage bootloader from the on-board EEPROM (aka `bootsys`).
@@ -65,6 +62,7 @@ To facilitate this process, we need:
         * Sign with Customer Key
         * Write to EEPROM
 * Firmware Version (TBD how to handle this)
+* Signed Boot Media bundle
 
 We'll keep these details in mind for later when we get to the provisioning step.
 
@@ -72,9 +70,29 @@ We'll keep these details in mind for later when we get to the provisioning step.
 
 Note that this section does not elaborate on the importance of securing your signing keys.  Be careful out there.
 
-Referencing the QSG:
+Referencing the [QSG](https://github.com/raspberrypi/usbboot/tree/master/secure-boot-example):
 
-* Use [rpiboot](https://search.nixos.org/packages?channel=25.11&show=rpiboot&query=rpiboot) to sign 
+* Get `bootfiles.bin` from the [usbboot](https://github.com/raspberrypi/usbboot/blob/master/secure-boot-example/sign.sh) repo 
+* Sign `bootfiles.bin` with the Customer Key using `rpi-sign-bootcode`.  See [the secure boot example](https://github.com/raspberrypi/usbboot/blob/master/secure-boot-example/sign.sh)
+  * TODO: Inspect this signing util & extract the signing operation
+* Sign the `boot.img`.  It will generate `boot.sig`.  Both files are bundled into the first partition of the boot drive
+
+TODO: Cover the secure handoff from `boot.img` to an encrypted rootfs.
+
+
+Lets break this down into discrete, testable steps:
+
+#### Get/Sign `bootfiles.bin`
+
+* Inputs
+    * `bootfiles.bin` - TODO: Can I build this myself?
+    * `rpi-sign-bootcode` script
+    * `customer-private-key`
+    * TODO: Firmware Version (it's an argument passed to `rpi-sign-bootcode`)
+* Outputs
+    * Signed `bootfiles.bin`
+
+
 
 ### Device Provisioning
 

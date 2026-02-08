@@ -17,7 +17,7 @@
         pythonDeps = python.withPackages(ps: with ps;[
           pycryptodomex
         ]);
-        derivationToBeRenamed=with pkgs; stdenv.mkDerivation {
+        rpi-sign-bootcode=with pkgs; stdenv.mkDerivation {
           pname = "rpi-sign-bootcode";
           name = "my-package";  # Add the 'name' attribute
           src = pkgs.fetchFromGitHub {
@@ -34,8 +34,8 @@
             '';
         };
       in {
-        packages.default = derivationToBeRenamed;
-        apps.default = flake-utils.lib.mkApp {drv =derivationToBeRenamed;};
+        packages.default = rpi-sign-bootcode;
+        apps.default = flake-utils.lib.mkApp {drv = rpi-sign-bootcode;};
       });
 
     

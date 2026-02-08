@@ -28,7 +28,7 @@
             hash = "sha256-6zlq6BibjPWSGQPl13vFNCPVzjnROfYowVYPttQ9jZQ=";
             fetchSubmodules = true;
           };
-          buildInputs = [pip_python_packages];
+          buildInputs = [with pycryptodomex;];
           installPhase = ''
             mkdir -p $out/bin
             cp $src/tools/rpi-sign-bootcode $out/bin

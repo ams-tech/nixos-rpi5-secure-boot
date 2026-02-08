@@ -14,10 +14,9 @@
       let 
         pkgs = import nixpkgs { inherit system; };
         python = pkgs.python313;
-        f = ps: with ps;[
+        pythonDeps = python.withPackages(ps: with ps;[
           pycryptodomex
-        ];        
-        pip_python_packages= python.withPackages(f);
+        ]);
         derivationToBeRenamed=with pkgs; stdenv.mkDerivation {
           pname = "rpi-sign-bootcode";
           name = "my-package";  # Add the 'name' attribute
@@ -28,7 +27,7 @@
             hash = "sha256-6zlq6BibjPWSGQPl13vFNCPVzjnROfYowVYPttQ9jZQ=";
             fetchSubmodules = true;
           };
-          buildInputs = [with pycryptodomex;];
+          buildInputs = [pythonDeps];
           installPhase = ''
             mkdir -p $out/bin
             cp $src/tools/rpi-sign-bootcode $out/bin

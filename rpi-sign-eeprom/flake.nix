@@ -1,7 +1,10 @@
 {
-  description = "Sign a Raspberry Pi EEPROM image with a private key";
+  description = "Utility for signing the RPi";
 
-  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+  inputs = {
+    # Latest stable Nixpkgs
+    nixpkgs.url = "https://flakehub.com/f/NixOS/nixpkgs/0";
+  };
 
   outputs =
     { self, nixpkgs }:
@@ -30,14 +33,28 @@
         {
           default =
             let
-              python = pkgs.python3;
+              binName = "zero-to-nix-cpp";
+              cppDependencies = with pkgs; [
+                boost
+                gcc
+                poco
+              ];
             in
-            python.pkgs.buildPythonApplication {
-              name = "zero-to-nix-python";
-
-              buildInputs = with python.pkgs; [ pip ];
-
-              src = ./.;
+            pkgs.stdenv.mkDerivation {
+              name = "zero-to-nix-cpp";
+              src = pkgs.fetchFromGitHub {
+                owner = "raspberrypi";
+                repo = "rpi-eeprom";
+                tag = finalAttrs.version;
+                hash = "";
+                fetchSubmodules = true;
+              };
+              buildInputs = cppDependencies;
+              buildPhase = "c++ -std=c++17 -o ${binName} ${./main.cpp} -lPocoFoundation -lboost_system";
+              installPhase = ''
+                mkdir -p $out/bin
+                cp ${binName} $out/bin/
+              '';
             };
         }
       );

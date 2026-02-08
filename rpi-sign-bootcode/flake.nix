@@ -1,5 +1,5 @@
 {
-  description = "Utility for signing the RPi";
+  description = "Utility for signing the RPi EERPOM bootcode";
 
   inputs = {
     # Latest stable Nixpkgs
@@ -14,16 +14,18 @@
       let 
         pkgs = import nixpkgs { inherit system; };
         python = pkgs.python313;
-        pythonDeps = python.withPackages(ps: with ps;[
+        pythonDeps = python.withPackages(pipPackage: with pipPackage;[
           pycryptodomex
         ]);
+        packageVersion = "2025.12.08-2712";
+
         rpi-sign-bootcode=with pkgs; stdenv.mkDerivation {
           pname = "rpi-sign-bootcode";
-          name = "my-package";  # Add the 'name' attribute
+          version = packageVersion;
           src = pkgs.fetchFromGitHub {
             owner = "raspberrypi";
             repo = "rpi-eeprom";
-            tag = "v2025.12.08-2712";
+            tag = "v${packageVersion}";
             hash = "sha256-6zlq6BibjPWSGQPl13vFNCPVzjnROfYowVYPttQ9jZQ=";
             fetchSubmodules = true;
           };
@@ -33,10 +35,10 @@
             cp $src/tools/rpi-sign-bootcode $out/bin
             '';
         };
+
       in {
         packages.default = rpi-sign-bootcode;
         apps.default = flake-utils.lib.mkApp {drv = rpi-sign-bootcode;};
-      });
-
-    
+      }
+    );
 }

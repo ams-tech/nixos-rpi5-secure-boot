@@ -7,7 +7,8 @@
   python,
 }:
 
-stdenv.mkDerivation (finalAttrs: {
+stdenv.mkDerivation (finalAttrs:   {
+
   pname = "rpi-sign-bootcode";
   version = "2025.12.08-2712";
 
@@ -19,21 +20,10 @@ stdenv.mkDerivation (finalAttrs: {
     fetchSubmodules = true;
   };
 
-  pythonDeps = python.withPackages(pipPackage: with pipPackage;[
-    # Put a list of the module's python dependencies here
-    pycryptodomex
-  ]);
-
-  buildInputs = [ pythonDeps ];
-  nativeBuildInputs = [ pkg-config ];
-
-  makeFlags = [ "INSTALL_PREFIX=$(out)" ];
-
-  preInstall = ''
-    mkdir -p $out/bin
-  '';
+  # buildInputs = [ pythonDeps ];
 
   installPhase = ''
+    mkdir -p $out/bin
     cp $src/tools/rpi-sign-bootcode $out/bin
   '';
 

@@ -12,7 +12,8 @@
     # Create outputs for a variety of common systems by using flake-utils->eachDefaultSystem to define the "system"
     flake-utils.lib.eachDefaultSystem( system:
       let 
-        rpi-sign-bootcode = import ./pkgs/rpi-sign-bootcode/package.nix;
+        pkgs = import nixpkgs { inherit system; };
+        rpi-sign-bootcode = (pkgs.callPackage ./pkgs/rpi-sign-bootcode/package.nix {});
       in {
         packages.default = rpi-sign-bootcode;
         apps.default = flake-utils.lib.mkApp {drv = rpi-sign-bootcode;};

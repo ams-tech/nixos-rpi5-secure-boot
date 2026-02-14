@@ -4,10 +4,16 @@
   fetchFromGitHub,
   gitUpdater,
   pkg-config,
-  python,
+  python3,
 }:
 
-stdenv.mkDerivation (finalAttrs:   {
+stdenv.mkDerivation (finalAttrs:   
+  let 
+    pythonDeps = python3.withPackages(pipPackage: with pipPackage;[
+      # Put a list of the module's python dependencies here
+      pycryptodomex
+    ]);
+  in{
 
   pname = "rpi-sign-bootcode";
   version = "2025.12.08-2712";
@@ -20,7 +26,7 @@ stdenv.mkDerivation (finalAttrs:   {
     fetchSubmodules = true;
   };
 
-  # buildInputs = [ pythonDeps ];
+  buildInputs = [ pythonDeps ];
 
   installPhase = ''
     mkdir -p $out/bin

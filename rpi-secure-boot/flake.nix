@@ -15,7 +15,7 @@
         pkgs = import nixpkgs { inherit system; };
         rpi-sign-bootcode = (pkgs.callPackage ./pkgs/rpi-sign-bootcode/package.nix {});
       in {
-        packages.default = rpi-sign-bootcode;
+        packages.rpi-sign-bootcode = rpi-sign-bootcode;
         apps.default = flake-utils.lib.mkApp {drv = rpi-sign-bootcode;};
       }
     );

@@ -3,7 +3,6 @@
   stdenv,
   fetchFromGitHub,
   gitUpdater,
-  pkg-config,
   python3,
 }:
 

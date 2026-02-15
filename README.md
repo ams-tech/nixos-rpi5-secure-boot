@@ -92,7 +92,10 @@ Lets break this down into discrete, testable steps:
 * Outputs
     * Signed `bootfiles.bin`
 
+Lets break this up into a few smaller flakes:
 
+* `rpi-sign-bootcode` creates a Flake for the off-the-shelf `rpi-sign-bootcode` script provided by the rpi foundation.
+* `customer-private-key` manages the private key using [sops-nix](https://www.youtube.com/watch?v=G5f6GC7SnhU).
 
 ### Device Provisioning
 

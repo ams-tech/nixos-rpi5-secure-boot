@@ -1,26 +1,36 @@
 {
-  description = "nixos config";
+  description = "Minimal NixOS VM flake";
 
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
-    sops-nix.url = "github:Mic92/sops-nix";
-    # optional, not necessary for the module
-    #inputs.sops-nix.inputs.nixpkgs.follows = "nixpkgs";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
   };
 
-  outputs = { self, nixpkgs, ... }@inputs:
-    let
-      system = "x86_64-linux";
-      pkgs = nixpkgs.legacyPackages.${system};
-    in
-    {
+  outputs = { self, nixpkgs }:
+  let
+    system = "x86_64-linux";
+  in
+  {
+    nixosConfigurations.minimal = nixpkgs.lib.nixosSystem {
+      inherit system;
 
-      nixosConfigurations = {
-        your-hostname = nixpkgs.lib.nixosSystem {
-          specialArgs = { inherit inputs; };
-          modules = [ ./configuration.nix ];
-        };
-      };
+      modules = [
+        ({ pkgs, ... }: {
 
+          system.stateVersion = "25.11";
+
+          boot.loader.grub.enable = false;
+          boot.loader.systemd-boot.enable = false;
+
+          services.getty.autologinUser = "root";
+
+          users.users.root.initialPassword = "root";
+
+          environment.systemPackages = with pkgs; [
+            vim
+            git
+          ];
+        })
+      ];
     };
+  };
 }
